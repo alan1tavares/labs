@@ -1,7 +1,8 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using PocJwt;
 using System.Security.Claims;
 
-const string secretKey = "de1fde61701241c798fceca76b375bfd";
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,12 +12,19 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddAuthorization();
-builder.Services.AddAuthentication(op =>
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+.AddJwtBearer(jwtOptions =>
 {
-    op.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    op.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-    op.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-}).AddJwtBearer();
+    jwtOptions.SaveToken = true;
+    jwtOptions.RequireHttpsMetadata = false;
+    jwtOptions.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = false,
+        ValidateAudience = false,
+        IssuerSigningKey = new SymmetricSecurityKey(SecretKey.GetWithEncoding()),
+    };
+
+});
 
 var app = builder.Build();
 
@@ -29,6 +37,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapGet("/ping", () =>
@@ -41,5 +50,15 @@ app.MapGet("/secreteroute", () =>
 {
     return "You find me";
 }).RequireAuthorization();
+
+app.MapPost("/login", (User user) =>
+{
+    var token = TokenService.GenerateToken(user);
+    return new
+    {
+        userName = user.Username,
+        token = token
+    };
+});
 
 app.Run();
