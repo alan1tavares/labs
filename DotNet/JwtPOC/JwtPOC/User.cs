@@ -7,7 +7,10 @@ namespace PocJwt
     public class User
     {
         public string Username { get; set; }
+
         public string Password { get; set; }
+
+        public string Role { get; set; }
 
     }
 
@@ -18,7 +21,8 @@ namespace PocJwt
             return new User()
             {
                 Username = "alan",
-                Password = "1234"
+                Password = "1234",
+                Role = "manager"
             };
         }
     }
@@ -33,7 +37,8 @@ namespace PocJwt
             {
                 Subject = new ClaimsIdentity(new Claim[]
                 {
-                    new Claim(ClaimTypes.Name, user.Username.ToString())
+                    new Claim(ClaimTypes.Name, user.Username.ToString()),
+                    new Claim(ClaimTypes.Role, user.Role.ToString())
                 }),
                 Expires = DateTime.UtcNow.AddMinutes(10),
                 SigningCredentials = new SigningCredentials(
