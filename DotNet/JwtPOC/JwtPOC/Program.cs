@@ -3,8 +3,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using PocJwt;
-using System.Security.Claims;
-
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -79,21 +77,37 @@ app.MapGet("/secreteroute", () =>
     return "You find me";
 }).RequireAuthorization();
 
-app.MapPost("/login", (User user) =>
+app.MapPost("/login", (User aUser) =>
 {
-    var token = TokenService.GenerateToken(user);
-    return new
+    var user = UserRepository.Get(aUser.Username, aUser.Password);
+
+    if (user == null)
     {
-        userName = user.Username,
-        token = token
-    };
+        return Results.NotFound(new { message = "Usuário ou senha inválidos" });
+    }
+
+    var token = TokenService.GenerateToken(user);
+    return Results.Ok(
+        new
+        {
+            userName = user.Username,
+            token = token
+        });
 });
 
 app.MapGet("/is_manager", [Authorize(Roles = "manager")] () =>
 {
-    return "True";
-}
+    return Results.Ok("True");
+});
 
-);
+app.MapGet("is_admin", [Authorize(Roles = "admin")] () => 
+{
+    return Results.Ok("True");
+});
+
+app.MapGet("you_have_access", [Authorize(Roles = "admin,manager")] () => 
+{
+    return Results.Ok("True");
+});
 
 app.Run();

@@ -11,14 +11,14 @@ namespace PocJwt
                 {
                     Username = "alan",
                     Password = "1234",
-                    Role = "manager"
+                    Roles = new List<string>() { "manager" }
                 });
             users.Add(
                 new User
                 {
                     Username = "admin",
                     Password = "1234",
-                    Role = "admin"
+                    Roles = new List<string>() { "admin" }
                 }
             );
             users.Add(
@@ -26,7 +26,15 @@ namespace PocJwt
                 {
                     Username = "forAll",
                     Password = "1234",
-                    Role = "amin"
+                    Roles = new List<string>() { "manager", "admin" }
+                }
+            );
+            users.Add(
+                new User
+                {
+                    Username = "none",
+                    Password = "1234",
+                    Roles = new List<string>(){"none"}
                 }
             );
 
