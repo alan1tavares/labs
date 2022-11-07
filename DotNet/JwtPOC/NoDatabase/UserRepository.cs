@@ -1,3 +1,5 @@
+using Services;
+
 namespace PocJwt
 {
     public static class UserRepository
