@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using WithDatabase;
+using Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -32,5 +33,19 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.MapPost("/role", async (RoleManager<IdentityRole> roleManager, string name) =>
+{
+    IdentityResult result = await roleManager.CreateAsync(new IdentityRole(name));
+    if (result.Succeeded)
+        return Results.Ok($"Role {name} criada");
+    return Results.Problem(result.Errors.ToArray().ToString());
+    
+});
+
+app.MapPost("/user", (User user) =>
+{
+
+});
 
 app.Run();
