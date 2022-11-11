@@ -77,4 +77,21 @@ app.MapPost("/user", async (IServiceProvider serviceProvider, User aUser) =>
     return Results.Problem(result.ToString());
 });
 
+app.MapPost("role-to-user", async (IServiceProvider serviceProvider, string role, string email) =>
+{
+    var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+
+    var user = await userManager.FindByEmailAsync(email);
+
+    if (user != null)
+    {
+        var result = await userManager.AddToRoleAsync(user, role);
+
+        if (result.Succeeded)
+            return Results.Ok($"Operação realizada");
+        return Results.Problem(result.ToString());
+    }
+    return Results.NotFound($"Usuário {email} não encontrado");
+});
+
 app.Run();
