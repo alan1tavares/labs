@@ -8,6 +8,6 @@ public class User
 
     public string Password { get; set; }
 
-    public List<string>? Roles { get; set; }
+    public IList<string>? Roles { get; set; }
 
 }

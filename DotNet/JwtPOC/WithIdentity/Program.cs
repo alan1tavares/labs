@@ -94,4 +94,42 @@ app.MapPost("role-to-user", async (IServiceProvider serviceProvider, string role
     return Results.NotFound($"Usuário {email} não encontrado");
 });
 
+app.MapPost("/login", async (IServiceProvider serviceProvider, string email, string password) =>
+{
+    var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+
+    var user = await userManager.FindByEmailAsync(email);
+
+    if (user == null)
+    {
+        return Results.NotFound(new { message = "Usuário não encontrado" });
+    }
+
+    Console.WriteLine("u," + user.UserName);
+    var isValidPassword = await userManager.CheckPasswordAsync(user, password);
+
+    Console.WriteLine("p, " + isValidPassword);
+
+    if (isValidPassword)
+    {
+        var roles = await userManager.GetRolesAsync(user);
+        var token = TokenService.GenerateToken(new User()
+        {
+            Email = email,
+            Username = user.UserName,
+            Roles = roles
+        });
+
+
+        return Results.Ok(new
+        {
+            username = user.UserName,
+            token = token
+        });
+    }
+
+    return Results.Problem(":(");
+
+});
+
 app.Run();
