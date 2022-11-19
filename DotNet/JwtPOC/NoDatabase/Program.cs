@@ -99,12 +99,12 @@ app.MapGet("/is_manager", [Authorize(Roles = "manager")] () =>
     return Results.Ok("True");
 });
 
-app.MapGet("is_admin", [Authorize(Roles = "admin")] () => 
+app.MapGet("/is_admin", [Authorize(Roles = "admin")] () => 
 {
     return Results.Ok("True");
 });
 
-app.MapGet("you_have_access", [Authorize(Roles = "admin,manager")] () => 
+app.MapGet("/you_have_access", [Authorize(Roles = "admin,manager")] () => 
 {
     return Results.Ok("True");
 });

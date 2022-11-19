@@ -1,29 +1,51 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using Services;
 
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using WithDatabase;
-using Services;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddControllers();
 
-// Add services to the container.
-
-builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
+    {
+        Name = "Authorization",
+        Description = "JWT Authorization header using the Bearer scheme.",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+    });
 
-builder.Services.AddAuthorization();
-builder.Services.AddEndpointsApiExplorer();
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] {}
+        }
+    });
+});
+
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql("Host=localhost;Database=poc_identtity;Username=postgres;Password=1234"));
 
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
-    .AddEntityFrameworkStores<ApplicationDbContext>();
+    .AddEntityFrameworkStores<ApplicationDbContext>()
+    .AddDefaultTokenProviders();
 
 builder.Services.Configure<IdentityOptions>(options =>
 {
@@ -34,6 +56,26 @@ builder.Services.Configure<IdentityOptions>(options =>
     options.Password.RequireLowercase = false;
     options.Password.RequireNonAlphanumeric = false;
     options.Password.RequireUppercase = false;
+});
+
+builder.Services.AddAuthorization();
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(jwtOptions =>
+{
+    jwtOptions.SaveToken = true;
+    jwtOptions.RequireHttpsMetadata = false;
+    jwtOptions.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = false,
+        ValidateAudience = false,
+        IssuerSigningKey = new SymmetricSecurityKey(SecretKey.GetWithEncoding()),
+    };
+
 });
 
 
@@ -48,9 +90,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
-
-app.MapControllers();
 
 app.MapPost("/role", async (RoleManager<IdentityRole> roleManager, string name) =>
 {
@@ -77,7 +118,7 @@ app.MapPost("/user", async (IServiceProvider serviceProvider, User aUser) =>
     return Results.Problem(result.ToString());
 });
 
-app.MapPost("role-to-user", async (IServiceProvider serviceProvider, string role, string email) =>
+app.MapPost("/role-to-user", async (IServiceProvider serviceProvider, string role, string email) =>
 {
     var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
@@ -105,10 +146,7 @@ app.MapPost("/login", async (IServiceProvider serviceProvider, string email, str
         return Results.NotFound(new { message = "Usuário não encontrado" });
     }
 
-    Console.WriteLine("u," + user.UserName);
     var isValidPassword = await userManager.CheckPasswordAsync(user, password);
-
-    Console.WriteLine("p, " + isValidPassword);
 
     if (isValidPassword)
     {
@@ -130,6 +168,26 @@ app.MapPost("/login", async (IServiceProvider serviceProvider, string email, str
 
     return Results.Problem(":(");
 
+});
+
+app.MapGet("/is_manager", [Authorize(Roles = "manager")] () =>
+{
+    return Results.Ok("True");
+});
+
+app.MapGet("/is_admin", [Authorize(Roles = "admin")] () => 
+{
+    return Results.Ok("True");
+});
+
+app.MapGet("/you_have_access", [Authorize(Roles = "admin,manager")] () =>
+{
+    return Results.Ok("True");
+});
+
+app.MapGet("/ping", [AllowAnonymous] () =>
+{
+    return Results.Ok("pong");
 });
 
 app.Run();
