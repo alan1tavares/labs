@@ -7,6 +7,9 @@ Console.WriteLine("Hello, World!");
 
 var config = new MapperConfiguration(config =>
     config.CreateMap<Student, StudentDT>()
+        .ForMember(
+                dest => dest.Dept, 
+                opt => opt.MapFrom(src => src.Department))
 );
 
 Student student = new Student
@@ -24,5 +27,5 @@ Console.WriteLine($@"
     Name: {studentDT.Name} 
     Age: {studentDT.Age}
     Addres: {studentDT.Address}
-    Department: {studentDT.Department} 
+    Department: {studentDT.Dept} 
 ");
