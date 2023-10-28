@@ -1,95 +1,69 @@
-import Image from 'next/image'
-import styles from './page.module.css'
+'use client';
+
+import { GroupBase, OnChangeValue, SingleValue, StylesConfig } from "react-select";
+import { useMounted } from "./useMounted";
+import AsyncSelect from "react-select/async";
+import { useState } from "react";
+
+
+const styles: StylesConfig<MyOption, false, GroupBase<MyOption>> = {
+  control: (baseStyles, state) => ({
+    ...baseStyles,
+    borderColor: state.isFocused ? "#FFA4A3" : "gray",
+    boxShadow: state.isFocused ? "0 0 0 1px #FFA4A3" : "",
+    "&:hover": {
+      borderColor: "#FFA4A3",
+    },
+  }),
+  option: (baseStyles, state) => ({
+    ...baseStyles,
+    color: state.isSelected ? "#472E2E" : "",
+    backgroundColor: state.isSelected ? "#FFA4A3" : "",
+    "&:hover": {
+      backgroundColor: !state.isSelected ? "#FFF6F6" : "",
+    },
+  }),
+};
+
+interface MyOption {
+  label: string;
+  value: string;
+}
 
 export default function Home() {
+  const { hasMounted } = useMounted();
+  const [selected, setSelected] = useState<MyOption>();
+
+  async function fetctApi(value: string): Promise<MyOption[]> {
+    const resp = await fetch("https://rickandmortyapi.com/api/character");
+    const json = await resp.json();
+    const characterList = json.results;
+    const options: MyOption[] = characterList.map((item: { id: string; name: string }) => ({
+      value: item.id + "",
+      label: item.name,
+    }));
+
+    return options.filter((i: MyOption) =>
+      i.label.toLowerCase().includes(value.toLowerCase()))
+  }
+
   return (
-    <main className={styles.main}>
-      <div className={styles.description}>
-        <p>
-          Get started by editing&nbsp;
-          <code className={styles.code}>app/page.tsx</code>
-        </p>
-        <div>
-          <a
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{' '}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className={styles.vercelLogo}
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
-      </div>
-
-      <div className={styles.center}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className={styles.grid}>
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Docs <span>-&gt;</span>
-          </h2>
-          <p>Find in-depth information about Next.js features and API.</p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Learn <span>-&gt;</span>
-          </h2>
-          <p>Learn about Next.js in an interactive course with&nbsp;quizzes!</p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Templates <span>-&gt;</span>
-          </h2>
-          <p>Explore the Next.js 13 playground.</p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Deploy <span>-&gt;</span>
-          </h2>
-          <p>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
+    <main style={{
+      width: "320px"
+    }}>
+      <h1>React Select</h1>
+      {
+        hasMounted ?
+          <AsyncSelect
+            styles={styles}
+            defaultOptions={true}
+            loadOptions={fetctApi}
+            cacheOptions={true}
+            loadingMessage={() => "Carregando"}
+            onChange={(data) => setSelected(data as MyOption)}
+          /> : null
+      }
+      {selected && <pre>{JSON.stringify(selected)}</pre>}
     </main>
   )
 }
