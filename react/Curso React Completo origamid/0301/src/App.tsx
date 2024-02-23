@@ -1,14 +1,14 @@
 import React from 'react'
 import './App.css'
 
-interface Item {
+interface Produto {
   nome: string;
   preco: number;
 }
 
 function App() {
 
-  const [dados, setDados] = React.useState<Item | null>(null);
+  const [dados, setDados] = React.useState<Produto | null>(null);
   const [isCarregando, setIsCarregando] = React.useState<boolean>(false);
   const baseUrl = 'https://ranekapi.origamid.dev/json/api/produto/'
 
@@ -36,12 +36,24 @@ function App() {
       {
         isCarregando ?
           'Carregando' :
-          <div>
-            <p>{dados?.nome}</p>
-            <p>{dados?.preco}</p>
-          </div>
+          dados && <Produtos produto={dados} />
       }
     </>
+  )
+}
+
+interface ProdutosProps {
+  produto: Produto
+}
+
+function Produtos(props: ProdutosProps) {
+  const { produto } = props;
+  return (
+    <div>
+      <p>{produto.nome}</p>
+      <p>Preço: R$ {produto.preco}</p>
+    </div>
+
   )
 }
 
