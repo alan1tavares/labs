@@ -36,6 +36,25 @@ app.MapGet("/weatherforecast", () =>
 .WithName("GetWeatherForecast")
 .WithOpenApi();
 
+
+app.MapGet("/isAlived", () =>
+{
+    return "teste";
+});
+
+app.Use(async (context, next) =>
+{
+    // Do work that can write to the Response.
+    await context.Response.WriteAsync("Hello world!");
+    await next.Invoke();
+    // Do logging or other work that doesn't write to the Response.
+});
+
+app.Run(async context =>
+{
+    await context.Response.WriteAsync("Hello from 2nd delegate.");
+});
+
 app.Run();
 
 record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
