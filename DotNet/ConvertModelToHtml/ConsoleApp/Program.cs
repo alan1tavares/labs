@@ -16,3 +16,20 @@ foreach (var prop in props)
     prop.GetCustomAttributes(typeof(DisplayAttribute), true)
         .Cast<DisplayAttribute>().ToList().ForEach(att => Console.WriteLine("\tAttribute Diplay: " + att.GetName()));
 }
+
+var formsDirectory = Path.Combine(AppContext.BaseDirectory, "GeneratedForms");
+Console.WriteLine(formsDirectory);
+
+if (!Directory.Exists(formsDirectory))
+{
+    Directory.CreateDirectory(formsDirectory);
+}
+
+var models = new List<Type> { typeof(Person) };
+
+foreach (var model in models)
+{
+    var html = ModelToHtml.Convert(model);
+    var filePath = Path.Combine(formsDirectory, $"{model.Name}.html");
+    File.WriteAllText(filePath, html);
+}
