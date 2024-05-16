@@ -6,10 +6,13 @@ public class Person
 {
     public int Id { get; set; }
     
-    [HTMLFormInputTypeAttribute(InputType.Text)]
+    [HTMLFormInputType(InputType.Text)]
     public required string Name { get; set; }
 
+    [HTMLFormInputType(InputType.Email)]
+    public required string Email { get; set; }
+
     [Display(Name = "Summary")]
-    [HTMLFormInputTypeAttribute(InputType.TextArea)]
+    [HTMLFormInputType(InputType.TextArea)]
     public string? Summary { get; set; }
 }

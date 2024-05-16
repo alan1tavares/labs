@@ -6,26 +6,36 @@ namespace ConsoleApp;
 
 public class ModelToHtml
 {
-    internal static string Convert(Type type)
+    internal static string Convert(Type model)
     {
         var htmlBuilder = new StringBuilder();
-        TypeInfo typeInfo = type.GetTypeInfo();
-        var props = typeInfo.DeclaredProperties;
+        
+        var props = model.GetTypeInfo().DeclaredProperties;
         foreach (var prop in props)
         {
-            string inputType;
-            var annotation = prop.GetCustomAttributes(typeof(HTMLFormInputTypeAttribute), true)
-                .Cast<HTMLFormInputTypeAttribute>().FirstOrDefault();
-            if (annotation != null)
-                inputType = annotation.InputType.ToString();
-            else
-                inputType = "text";
+            var inputType = GetInputTypeIn(prop);
 
             htmlBuilder.AppendLine($"<div>");
             htmlBuilder.AppendLine($"  <label>{prop.Name}</label>");
-            htmlBuilder.AppendLine($"  <input type=\"{inputType}\"/>");
+            htmlBuilder.AppendLine($"  {GetTagInput(inputType)}");
             htmlBuilder.AppendLine($"</div>");
         }
         return htmlBuilder.ToString();
+    }
+
+    private static InputType GetInputTypeIn(PropertyInfo prop)
+    {
+        var annotation = prop.GetCustomAttributes(typeof(HTMLFormInputTypeAttribute), true)
+                        .Cast<HTMLFormInputTypeAttribute>().FirstOrDefault();
+        if (annotation == null)
+            return InputType.Text;
+        return annotation.InputType;
+    }
+
+    private static string GetTagInput(InputType inputType)
+    {
+        if (inputType == InputType.TextArea)
+            return $"<textarea></textarea>";
+        return $"<input type=\"{inputType.ToString().ToLower()}\"/>";
     }
 }
