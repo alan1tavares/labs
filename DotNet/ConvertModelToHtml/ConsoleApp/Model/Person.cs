@@ -12,7 +12,9 @@ public class Person
     [HTMLFormInputType(InputType.Email)]
     public required string Email { get; set; }
 
-    [Display(Name = "Summary")]
+    [HTMLFormInputType(InputType.Radio)]
+    public Gender Gender { get; set; }
+
     [HTMLFormInputType(InputType.TextArea)]
     public string? Summary { get; set; }
 }

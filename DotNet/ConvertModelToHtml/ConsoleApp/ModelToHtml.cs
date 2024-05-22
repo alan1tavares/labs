@@ -1,5 +1,6 @@
 ﻿
 using System.Reflection;
+using System.Reflection.Emit;
 using System.Text;
 
 namespace ConsoleApp;
@@ -13,14 +14,26 @@ public class ModelToHtml
         var props = model.GetTypeInfo().DeclaredProperties;
         foreach (var prop in props)
         {
-            var inputType = GetInputTypeIn(prop);
-
             htmlBuilder.AppendLine($"<div>");
-            htmlBuilder.AppendLine($"  <label>{prop.Name}</label>");
-            htmlBuilder.AppendLine($"  {GetTagInput(inputType)}");
+            htmlBuilder.AppendLine($"  {GetFieldIn(prop)}");
             htmlBuilder.AppendLine($"</div>");
         }
         return htmlBuilder.ToString();
+    }
+
+    private static string GetFieldIn(PropertyInfo prop)
+    {
+        var inputType = GetInputTypeIn(prop);
+        if (inputType == InputType.TextArea)
+            return $"<textarea></textarea>";
+        if (inputType == InputType.Radio)
+            return GetRadio(prop);
+        
+        var fieldBuilder = new StringBuilder();
+        fieldBuilder.Append($"<label>{prop.Name}: ");
+        fieldBuilder.Append($"<input type=\"{inputType.ToString().ToLower()}\"/>");
+        fieldBuilder.Append("</label>");
+        return fieldBuilder.ToString();
     }
 
     private static InputType GetInputTypeIn(PropertyInfo prop)
@@ -31,11 +44,17 @@ public class ModelToHtml
             return InputType.Text;
         return annotation.InputType;
     }
-
-    private static string GetTagInput(InputType inputType)
+    public static string GetRadio(PropertyInfo prop)
     {
-        if (inputType == InputType.TextArea)
-            return $"<textarea></textarea>";
-        return $"<input type=\"{inputType.ToString().ToLower()}\"/>";
+        if (prop.PropertyType.IsEnum)
+        {
+            var list = prop.PropertyType.GetEnumNames();
+            var labels = new StringBuilder();
+            foreach (var name in list) {
+                labels.AppendLine($"<label><input type=\"radio\"/>{name}</label>");
+            }
+            return labels.ToString();
+        }
+        return "";
     }
 }
