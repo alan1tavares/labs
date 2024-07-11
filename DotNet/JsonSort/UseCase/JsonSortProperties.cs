@@ -5,20 +5,38 @@ namespace UseCase;
 
 public class JsonSortProperties
 {
-    public static string Sort(string aJsonDefault, string aJsonSort)
+    public static string Sort(string aJsonPattern, string aJsonSort)
     {
-        var jsonDefault = JObject.Parse(aJsonDefault);
+        var jsonPattern = JObject.Parse(aJsonPattern);
         var jsonSort = JObject.Parse(aJsonSort);
 
+        JObject result = SortPropertiesRecursively(jsonPattern, jsonSort);
+        return result.ToString(Formatting.Indented);
+    }
+
+    private static JObject SortPropertiesRecursively(JObject aJsonPattern, JObject aJsonSort)
+    {
         JObject result = new();
-        foreach (var property in jsonDefault.Properties()) 
+
+        foreach (var property in aJsonPattern.Properties())
         {
-            if (jsonSort.ContainsKey(property.Name))
+            if (aJsonSort.ContainsKey(property.Name))
             {
-                result.Add(property.Name, jsonSort[property.Name]);
+                var jsonPatternValue = property.Value;
+                var jsonSortValeu = aJsonSort[property.Name];
+
+                if (jsonPatternValue.Type == JTokenType.Object && jsonSortValeu?.Type == JTokenType.Object)
+                {
+                    result.Add(property.Name, SortPropertiesRecursively((JObject)jsonPatternValue, (JObject)jsonSortValeu));
+                }
+                else
+                {
+                    result.Add(property.Name, jsonSortValeu);
+                }
             }
         }
-        return result.ToString(Formatting.Indented);
+        
+        return result;
     }
 
 }

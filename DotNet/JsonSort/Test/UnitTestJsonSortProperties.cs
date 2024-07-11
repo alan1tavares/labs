@@ -37,4 +37,39 @@ public class UnitTestJsonSortProperties
         var result = JsonSortProperties.Sort(json1, json2);
         Assert.That(result, Is.EqualTo(jsonExpected));
     }
+
+    [Test]
+    public void TestJsonSortPropertiesChildren()
+    {
+        string json1 = @"{
+            ""name"": ""John"",
+            ""details"": {
+                ""age"": 30,
+                ""city"": ""New York""
+            },
+            ""hobbies"": [""reading"", ""sports""]
+        }";
+
+        string json2 = @"{
+            ""details"": {
+                ""city"": ""Los Angeles"",
+                ""age"": 25,
+                ""country"": ""USA""
+            },
+            ""hobbies"": [""music"", ""movies""],
+            ""name"": ""Doe""
+        }";
+
+        string jsonExpected = JObject.Parse(@"{
+            ""name"": ""Doe"",
+            ""details"": {
+                ""age"": 25,
+                ""city"": ""Los Angeles"",
+            },
+            ""hobbies"": [""music"", ""movies""]
+        }").ToString(Newtonsoft.Json.Formatting.Indented);
+       
+       var result = JsonSortProperties.Sort(json1, json2);
+        Assert.That(result, Is.EqualTo(jsonExpected));
+    }
 }
