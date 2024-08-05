@@ -25,5 +25,10 @@ namespace ExperimentWithControl
         {
             number.Text = numberTextBox.Text;
         }
+
+        private void numberTextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
+        {
+            e.Handled = !int.TryParse(numberTextBox.Text, out int result);
+        }
     }
 }
