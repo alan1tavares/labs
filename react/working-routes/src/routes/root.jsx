@@ -1,4 +1,4 @@
-import { Form, Link, NavLink, Outlet, redirect, useLoaderData, useNavigation, useSubmit } from "react-router-dom";
+import { Form, Link, NavLink, Outlet, redirect, replace, useLoaderData, useNavigation, useSubmit } from "react-router-dom";
 import { createContact, getContacts } from "../contacts";
 import { useEffect } from "react";
 
@@ -30,7 +30,10 @@ export default function Root() {
               name="q"
               defaultValue={q}
               onChange={(event) => {
-                submit(event.currentTarget.form);
+                const isFirstSearch = q == null;
+                submit(event.currentTarget.form, {
+                  replace: !isFirstSearch
+                });
               }}
             />
             <div
